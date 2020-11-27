@@ -100,7 +100,6 @@ def deriv_relu(z):
 def squared_error_cost(a, y):
     return 0.5*(a - y)**2
 
-test = 1 + 3
 
 
 
