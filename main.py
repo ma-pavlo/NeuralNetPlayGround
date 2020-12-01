@@ -1,6 +1,6 @@
 import numpy as np
 import h5py
-import random
+#import random
 
 class BabyNet:
     
@@ -24,27 +24,27 @@ class BabyNet:
         else:
             self.cost = cost
 
-        train_dataset = h5py.File('data/train_catvnoncat.h5', "r")
-        train_set_x_orig = np.array(train_dataset["train_set_x"][:])
-        train_set_y_orig = np.array(train_dataset["train_set_y"][:])
+        train_data = h5py.File('data/train_catvnoncat.h5', "r")
+        train_x = np.array(train_data["train_set_x"][:])
+        train_y = np.array(train_data["train_set_y"][:])
 
-        test_dataset = h5py.File('data/test_catvnoncat.h5', "r")
-        test_set_x_orig = np.array(test_dataset["test_set_x"][:])
-        test_set_y_orig = np.array(test_dataset["test_set_y"][:])
+        test_data = h5py.File('data/test_catvnoncat.h5', "r")
+        test_x = np.array(test_data["test_set_x"][:])
+        test_y = np.array(test_data["test_set_y"][:])
 
-        classes = np.array(test_dataset["list_classes"][:]) 
+        classes = np.array(test_data["list_classes"][:]) 
         
-        train_set_y_orig = train_set_y_orig.reshape((1, train_set_y_orig.shape[0]))
-        test_set_y_orig = test_set_y_orig.reshape((1, test_set_y_orig.shape[0]))
+        train_y = train_y.reshape((1, train_y.shape[0]))
+        test_y = test_y.reshape((1, test_y.shape[0]))
         
-        self.train_set_x_orig = train_set_x_orig
-        self.train_set_y_orig = train_set_y_orig
-        self.test_set_x_orig = test_set_x_orig
-        self.test_set_y_orig = test_set_y_orig
+        self.train_x = train_x
+        self.train_y = train_y
+        self.test_x = test_x
+        self.test_y = test_y
         self.classes = classes
 
-        self.X = train_set_x_orig.reshape(train_set_x_orig.shape[0],-1).T
-        self.Y = train_set_y_orig[0]
+        self.X = train_x.reshape(train_x.shape[0],-1).T
+        self.Y = train_y[0]
 
         self.weights = np.random.rand(layer_count, layer_size, self.X.shape[0])
         self.bias = np.random.rand(layer_count, layer_size, 1)
@@ -86,19 +86,19 @@ def sigmoid(z):
     return 1 / (1 + np.exp(-z))
 
 def deriv_sigmoid(z):
-    return np.exp(-z)*(1+np.exp(-z)) #
+    return np.exp(-z)*(1+np.exp(-z)) 
 
 def relu(z):
     return z if z > 0 else 0
 
 def deriv_relu(z):
     return z if z > 0 else 0 
-    #undefined at 0     
+    # undefined at 0     
 
 # need deriv of sigmoid & relu
 
 def squared_error_cost(a, y):
-    return 0.5*(a - y)**2
+    return 0.5*(a - y)**2  #wieso 0.5
 
 
 
