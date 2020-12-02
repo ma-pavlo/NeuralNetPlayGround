@@ -20,9 +20,9 @@ def load_cat_data():
 
 
 class BabyNet:
-    """[Simple Neural Net; default at 3 layers with each layer at 100 nodes.
+    """Simple Neural Net; default at 3 layers with each layer at 100 nodes.
         Using Relu activation at each layer except for the final layer, which is a sigmoid by default.
-        Default cost function set to squared error cost]
+        Default cost function set to squared error cost.
     """
 
     def __init__(
@@ -35,6 +35,7 @@ class BabyNet:
 
         self.layer_size = layer_size
         self.layer_count = layer_count
+        self.learning_rate = learning_rate,
         
         # create array holding the activation functions
         if activation == None:
@@ -58,14 +59,41 @@ class BabyNet:
         self.train_x = flat_train_x/flat_train_x.max()
         self.test_x = flat_test_x/flat_test_x.max()
 
-        # set weights and bias randomly 
-        self.layer_dimensions = []
-        d = self.initialise_params([2,3,4])
+        pixel_num = self.train_x.shape[1]
+        # initialise parameters (weights and bias) randomly within a range of -1 to 1 for the weights, bias can be zero initialisation
+        
+        layer_dimensions = np.array([3,100])
+        self.params = self.initialise_params(layer_dimensions)
         #self.weights = np.random.randn(layer_count, layer_size, self.train_x.shape[0])
         #self.bias = np.random.randn(layer_count, layer_size, 1)
 
+#######################################################
+        #self.cost_track = [] # save costs to check updating        
+        # 1. Initialise params --- initialise_params(self, layer_dimensions)
         
-    def initialise_params(layer_dimensions):
+        # 2. Loop thorugh Full BAtch Grad descent
+        #for i in range(0, 100):
+            # 3. forwardProp
+            # AL, caches = forward_prop(self, X, parameters)
+        
+            # 4. calculate cost
+            # cost = costFunction()
+    
+            # 5. BackProp propagation.
+            # gradients = backward_prop(AL, Y, caches)
+ 
+            # 6. update params
+            #params = update_params()
+                
+        #print cost (should be changed to not show at each iteration but less)
+        #print(cost)
+        #self.cost_track.append(cost)
+#######################################################
+
+    
+
+        
+    def initialise_params(self, layer_dimensions):
         """ Initialise parameter dictionary.
 
         Args:
@@ -78,14 +106,59 @@ class BabyNet:
         """
         params = {}
         L = len(layer_dimensions)  # amount of layers in the neural net
-
         for l in range(1, L):
-            params['W' + str(l)] = np.random.randn(layer_dimensions[l], layer_dimensions[l-1]) / np.sqrt(layer_dimensions[l-1]) #*0.01
+            params['W' + str(l)] = np.random.randn(layer_dimensions[l], layer_dimensions[l-1])*0.01
             params['b' + str(l)] = np.zeros((layer_dimensions[l], 1))
-        
+        return params
+    
+    def update_params(self, params, gradients, learning_rate):
+        L = len(params) // 2 
+        for l in range(L):
+            params["W" + str(l+1)] = params["W" + str(l+1)] - learning_rate * gradients["dW" + str(l+1)]
+            params["b" + str(l+1)] = params["b" + str(l+1)] - learning_rate * gradients["db" + str(l+1)]
         return params
 
+    def forward_steps(self, A_prev, W, b, activation):
+        """ Compute Linear step then Activation Function.
 
+        Args:
+            A_prev ([type]): [description]
+            W ([type]): [description]
+            b ([type]): [description]
+            activation ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """
+        if activation == "sigmoid":
+            Z = W.dot(A_prev) + b
+            linear_cache = (A_prev, W, b)
+            A, activation_cache = sigmoid(Z)
+        
+        elif activation == "relu":
+            Z = W.dot(A_prev) + b
+            linear_cache = (A_prev, W, b)
+            A, activation_cache = relu(Z)
+        
+        cache = (linear_cache, activation_cache)
+
+        return A, cache
+
+    def forward_prop(self, X, parameters):
+        caches = []
+        A = X
+        L = len(parameters) // 2   # num of layers in the network //2 due to Wb
+        
+        # linear -> relu * (the number of defined layers - 1)
+        for l in range(1, L):
+            A, cache = self.forward_steps(A, parameters['W' + str(l)], parameters['b' + str(l)], activation = "relu")
+            caches.append(cache)
+        
+        # linear -> sigmoid (final layer)
+        AL, cache = self.forward_steps(A, parameters['W' + str(L)], parameters['b' + str(L)], activation = "sigmoid")
+        caches.append(cache)
+        
+        return AL, caches
 
 #################
 
