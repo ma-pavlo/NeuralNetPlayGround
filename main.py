@@ -3,11 +3,6 @@ import h5py
 #import random
 
 def load_cat_data():
-    """[]
-
-    Returns:
-        [type]: [description]
-    """
     train_data = h5py.File('data/train_catvnoncat.h5', "r")
     train_x = np.array(train_data["train_set_x"][:])
     train_y = np.array(train_data["train_set_y"][:])
@@ -23,14 +18,16 @@ def load_cat_data():
     
     return train_x, train_y, test_x, test_y, classes
 
+
 class BabyNet:
     """[Simple Neural Net; default at 3 layers with each layer at 100 nodes.
         Using Relu activation at each layer except for the final layer, which is a sigmoid by default.
         Default cost function set to squared error cost]
     """
-    
+
     def __init__(
         self,
+        learning_rate = 0.01,
         layer_size = 100,
         layer_count = 3,
         activation = None, 
@@ -51,14 +48,46 @@ class BabyNet:
         else:
             self.cost = cost
 
-        # load Data 
-        self.train_x, self.train_y, self.test_x, self.test_y, self.classes = load_cat_data()
+        # load data - see dimensions.ipynb
+        self.train_x, self.train_y, self.test_x, self.test_y, _ = load_cat_data()
 
-        self.X = self.train_x.reshape(self.train_x.shape[0],-1).T
-        self.Y = self.train_y[0]
+        # reshape data - see dimensions.ipynb
+        flat_train_x = self.train_x.reshape(self.train_x.shape[0], -1).T 
+        flat_test_x = self.test_x.reshape(self.test_x.shape[0], -1).T
+        # standardize data to values between 0 and 1
+        self.train_x = flat_train_x/flat_train_x.max()
+        self.test_x = flat_test_x/flat_test_x.max()
 
-        self.weights = np.random.rand(layer_count, layer_size, self.X.shape[0])
-        self.bias = np.random.rand(layer_count, layer_size, 1)
+        # set weights and bias randomly 
+        self.layer_dimensions = []
+        d = self.initialise_params([2,3,4])
+        #self.weights = np.random.randn(layer_count, layer_size, self.train_x.shape[0])
+        #self.bias = np.random.randn(layer_count, layer_size, 1)
+
+        
+    def initialise_params(layer_dimensions):
+        """ Initialise parameter dictionary.
+
+        Args:
+            layer_dimensions (python array): contains the dimensions of each layer in the network
+
+        Returns:
+            params (python dictionary): contains parameters from W1 & b1 to WL & bL as keys with values to:
+                                        W - weight matrix with shape: (layer_dimensions[l], layer_dimensions[l-1])
+                                        b - bias vector with shape: (layer_dimensions[l], 1)
+        """
+        params = {}
+        L = len(layer_dimensions)  # amount of layers in the neural net
+
+        for l in range(1, L):
+            params['W' + str(l)] = np.random.randn(layer_dimensions[l], layer_dimensions[l-1]) / np.sqrt(layer_dimensions[l-1]) #*0.01
+            params['b' + str(l)] = np.zeros((layer_dimensions[l], 1))
+        
+        return params
+
+
+
+#################
 
 
     def forward_prop(self, x):
