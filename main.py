@@ -63,6 +63,7 @@ class BabyNet:
         self.L = len(layer_dimensions)
 
         # initialize with None at index 0, as there are no weights or biases for layer 0
+        np.random.seed(1)
         self.weights = [None]
         self.biases = [None]
         for l in range(1, self.L):
@@ -162,10 +163,10 @@ def sigmoid(z):
     return 1 / (1 + np.exp(-z))
 
 def sigmoid_deriv(z):
-    return np.exp(-z)*(1+np.exp(-z))
+    return z * (1 - z)
 
 def relu(z):
-    return z * (z > 0)
+    return np.maximum(0,z)
 
 def relu_deriv(z):
     return z >= 0  # returns 1 for z > 0; undefined at 0
@@ -201,23 +202,23 @@ def binary_cross_entropy(a, y):
     return - np.average(y * np.log(a) + (1 - y) * np.log(1 - a), axis=1)[0]
 
 def binary_cross_entropy_deriv(a, y):
-    result = (- np.sum(y / a - (1 - y) / (1 - a), axis=1) / y.shape[1])[0]
-    return result
+ #   result = (- np.sum(y / a - (1 - y) / (1 - a), axis=1) / y.shape[1])[0]
+    return - (np.divide(y, a) - np.divide(1 - y, 1 - a))
 
 
 train_x, train_y, test_x, test_y, classes = load_cat_data()
 
 net = BabyNet([12288,7,1])
 
-for c in range(2):
+for c in range(50):
     net.train_batch(train_x, train_y)
 
 
     z, a = net.forward_prop(train_x)
 
     #print(train_y.shape)
-    print(a[2])
-    #print(binary_cross_entropy(a[2], train_y))
+    #print(a[2])
+    print(binary_cross_entropy(a[2], train_y))
 
     #totalTrainError = 0
     # totalTrainError += a[2]
