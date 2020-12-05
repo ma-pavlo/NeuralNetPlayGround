@@ -44,20 +44,20 @@ class BabyNet:
                 - the cost function derivative.
         """
 
-        if activations == None:
-            self.activations = np.append(np.array([relu]*(len(layer_dimensions)-1)), sigmoid)
-            self.activation_derivs = np.append(np.array([relu_deriv]*(len(layer_dimensions)-1)), sigmoid_deriv)
-        else:
+        if activations:
             self.activations = activations
             self.activation_derivs = activation_derivs
+        else:
+            self.activations = np.append(np.array([relu]*(len(layer_dimensions)-1)), sigmoid)
+            self.activation_derivs = np.append(np.array([relu_deriv]*(len(layer_dimensions)-1)), sigmoid_deriv)
 
         # set the cost function
-        if cost == None:
-            self.cost = binary_cross_entropy
-            self.cost_deriv = binary_cross_entropy_deriv
-        else:
+        if cost:
             self.cost = cost
             self.cost_deriv = cost_deriv
+        else:
+            self.cost = binary_cross_entropy
+            self.cost_deriv = binary_cross_entropy_deriv
 
         self.layer_dimensions = layer_dimensions
         self.L = len(layer_dimensions)
@@ -67,7 +67,7 @@ class BabyNet:
         self.biases = [None]
         for l in range(1, self.L):
             # a matrix with layer_dimensions[l] rows and layer_dimensions[l-1] columns
-            self.weights.append(np.random.randn(layer_dimensions[l], layer_dimensions[l-1])*0.01)
+            self.weights.append(np.random.randn(layer_dimensions[l], layer_dimensions[l-1]) * 0.01)
             # a vector with layer_dimensions[l] rows
             self.biases.append(np.zeros((layer_dimensions[l], 1)))
 
@@ -91,7 +91,7 @@ class BabyNet:
             a.append(self.activations[l](currentZ))
         return z, a
 
-    def train_one_piece_of_data(self, x, y, learning_rate = 0.0075):
+    def train_one_piece_of_data(self, x, y, learning_rate = 0.075):
         """
         Args:
             x: array<layer_dimensions[0],1>
@@ -123,7 +123,7 @@ class BabyNet:
             self.weights[l] = self.weights[l] - learning_rate * dw
             self.biases[l] = self.biases[l] - learning_rate * db
 
-    def train_batch(self, x, y, learning_rate = 0.001):
+    def train_batch(self, x, y, learning_rate = 0.00001):
         """
         Args:
             x: array<layer_dimensions[0],N>
@@ -133,28 +133,35 @@ class BabyNet:
         """
         # using the maths from http://neuralnetworksanddeeplearning.com/chap2.html
 
-        L = self.L
-        N = y.shape[1]
-        z, a = self.forward_prop(x)
+        L = self.L # number
+        N = y.shape[1] # number
+        z, a = self.forward_prop(x) # z: list<array<layer_dimensions[i],N>>, a: list<array<layer_dimensions[i],N>>
 
         # compute the delta errors in the output
         d = {
             (L-1): self.cost_deriv(a[L-1], y) * self.activation_derivs[L-1](z[L-1])
-        }
+        } # dict<number, array<layer_dimensions[i],N>>
 
         # back propagation: in reverse, for each layer calculate the delta errors
         # this is a backwards loop, it goes from L - 2 to 0 inclusive
         for l in range(L - 2, 0, -1):
             d[l] = (self.weights[l+1].T @ d[l+1]) * self.activation_derivs[l](z[l])
 
+        # dw = [np.zeros(w.shape) for w in self.weights]
+        # db = [np.zeros(b.shape) for b in self.biases]
+        # self.weights = [ for w, d in zip(self.weights, d)]
+        # self.biases = [ for  in zip(db, d)]
+
         # update the weights and biases
         for l in range(1, L):
+            #dw = self.weights[l] - learning_rate * np.average(d[l][:,[n]] * a[l-1][:,[n]].T, axis=1)
+
             for n in range(0, N):
                 # row j, col k of dw should be = a[l-1][k] * d[l][j]
                 dw = a[l-1][:,[n]].T * d[l][:,[n]]
                 db = d[l][:, [n]]
-                self.weights[l] = self.weights[l] - learning_rate * dw
-                self.biases[l] = self.biases[l] - learning_rate * db
+                self.weights[l] -= learning_rate * dw
+                self.biases[l] -= learning_rate * db
 
 
 
@@ -162,10 +169,10 @@ def sigmoid(z):
     return 1 / (1 + np.exp(-z))
 
 def sigmoid_deriv(z):
-    return np.exp(-z)*(1+np.exp(-z))
+    return np.exp(-z) / ((1+np.exp(-z))**2)
 
 def relu(z):
-    return z * (z > 0)
+    return np.maximum(0, z)
 
 def relu_deriv(z):
     return z >= 0  # returns 1 for z > 0; undefined at 0
@@ -173,19 +180,28 @@ def relu_deriv(z):
 def squared_error_cost(a, y):
     """
         Args:
-            a: array<n,1>
+            a: array<layer_dimensions[L-1], N>
                 - activations from the final layer.
-            y: array<n,1>
+            y: array<layer_dimensions[L-1], N>
                 - training data outputs.
 
         Returns:
-            : number
-                - the squared differences.
+            : array<1, N>
     """
-    return np.sum(0.5*(a - y)**2)/len(y)
+    return np.mean(0.5*(a - y)**2, axis=0, keepdims=True)
 
 def squared_error_cost_deriv(a, y):
-    return (a - y)
+    """
+        Args:
+            a: array<layer_dimensions[L-1], N>
+                - activations from the final layer.
+            y: array<layer_dimensions[L-1], N>
+                - training data outputs.
+
+        Returns:
+            : array<layer_dimensions[L-1], N>
+    """
+    return a - y
 
 def binary_cross_entropy(a, y):
     """
@@ -196,28 +212,40 @@ def binary_cross_entropy(a, y):
                 - training data outputs.
 
         Returns:
-            : number
+            : array<1, N>
     """
-    return - np.average(y * np.log(a) + (1 - y) * np.log(1 - a), axis=1)[0]
+    return - np.mean(y * np.log(a) + (1 - y) * np.log(1 - a), axis=0, keepdims=True)
 
 def binary_cross_entropy_deriv(a, y):
-    result = (- np.sum(y / a - (1 - y) / (1 - a), axis=1) / y.shape[1])[0]
-    return result
+    """
+        Args:
+            a: array<layer_dimensions[L-1], N>
+                - activations from the final layer.
+            y: array<layer_dimensions[L-1], N>
+                - training data outputs.
+
+        Returns:
+            : array<layer_dimensions[L-1], N>
+    """
+    return - (y / a - (1 - y) / (1 - a))
+
 
 
 train_x, train_y, test_x, test_y, classes = load_cat_data()
 
 net = BabyNet([12288,7,1])
 
-for c in range(2):
+i = 0
+for c in range(10000):
+    i += 1
     net.train_batch(train_x, train_y)
-
 
     z, a = net.forward_prop(train_x)
 
     #print(train_y.shape)
-    print(a[2])
-    #print(binary_cross_entropy(a[2], train_y))
+    # print(a[2])
+    if (i % 100 == 0):
+        print(np.mean(binary_cross_entropy(a[2], train_y)))
 
     #totalTrainError = 0
     # totalTrainError += a[2]
