@@ -25,5 +25,5 @@ model.summary()
 model.compile(optimizer=keras.optimizers.SGD(lr=0.01), loss='binary_crossentropy', metrics=['accuracy'])
 
 # train the model
-model.fit(train_x, train_y, epochs=10, validation_split=0.2)
+model.fit(train_x, train_y, epochs=10, validation_split=0.2, batch_size=209)
 
