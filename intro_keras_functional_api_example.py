@@ -16,7 +16,7 @@ train_y =  tf.cast(train_y.T, tf.float32)
 test_x = tf.cast(test_x.T, tf.float32)
 test_y =  tf.cast(test_y.T, tf.float32) 
 
-# Simple Net in Tensorflow
+# Simple Net in Keras Functional Api
 inputs = keras.Input(shape=(12288,))
 dense = layers.Dense(8, activation="relu")
 
