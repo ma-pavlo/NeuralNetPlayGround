@@ -202,30 +202,34 @@ def binary_cross_entropy(a, y):
     return - np.average(y * np.log(a) + (1 - y) * np.log(1 - a), axis=1)[0]
 
 def binary_cross_entropy_deriv(a, y):
- #   result = (- np.sum(y / a - (1 - y) / (1 - a), axis=1) / y.shape[1])[0]
+#   result = (- np.sum(y / a - (1 - y) / (1 - a), axis=1) / y.shape[1])[0]
     return - (np.divide(y, a) - np.divide(1 - y, 1 - a))
 
 
-train_x, train_y, test_x, test_y, classes = load_cat_data()
-
-net = BabyNet([12288,7,1])
-
-for c in range(50):
-    net.train_batch(train_x, train_y)
 
 
-    z, a = net.forward_prop(train_x)
+if __name__ == "__main__":
+    train_x, train_y, test_x, test_y, classes = load_cat_data()
 
-    #print(train_y.shape)
-    #print(a[2])
-    print(binary_cross_entropy(a[2], train_y))
+    net = BabyNet([12288,7,1])
 
-    #totalTrainError = 0
-    # totalTrainError += a[2]
-    #for testX, testY in zip(standardized_test_x.T, test_y.T):
-    #    error = testY[0] - net.forward_prop(testX)
-    #    totalTestError += error
+    for c in range(50):
+        net.train_batch(train_x, train_y)
 
-    #testAccuracy = totalTestError / len(test_y)
-    # trainAccuracy = totalTrainError / len(train_y)
-    # print('Loss: ', trainAccuracy)
+
+        z, a = net.forward_prop(train_x)
+
+        #print(train_y.shape)
+        #print(a[2])
+        print(binary_cross_entropy(a[2], train_y))
+
+        #totalTrainError = 0
+        # totalTrainError += a[2]
+        #for testX, testY in zip(standardized_test_x.T, test_y.T):
+        #    error = testY[0] - net.forward_prop(testX)
+        #    totalTestError += error
+
+        #testAccuracy = totalTestError / len(test_y)
+        # trainAccuracy = totalTrainError / len(train_y)
+        # print('Loss: ', trainAccuracy)
+
