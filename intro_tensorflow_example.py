@@ -15,6 +15,30 @@ train_x = tf.cast(train_x.T, tf.float32)
 train_y =  tf.cast(train_y.T, tf.float32) 
 
 
+# Simple Net in Tensorflow
+inputs = keras.Input(shape=(12288,))
+dense = layers.Dense(8, activation="relu")
+
+x = dense(inputs)
+outputs = layers.Dense(1, activation="sigmoid")(x)
+
+model = keras.Model(inputs=inputs, outputs=outputs, name="simple_cat_model")
+
+model.summary()
+
+keras.utils.plot_model(model, "simple_cat_model.png", show_shapes=True))
+
+
+
+
+
+
+
+
+
+
+
+
 
 # # Simple Net in Tensorflow
 # w1 = tf.Variable(tf.random.normal([12288,8]), np.float32)
@@ -34,7 +58,7 @@ train_y =  tf.cast(train_y.T, tf.float32)
 # def binary_crossentropy_loss(w1, b1, w2, b2, features=train_x, targets=train_y):
 #     predictions = model(w1, b1, w2, b2)
 #     bce = tf.keras.losses.BinaryCrossentropy()
-#     return bce(targets, predictions).numpy()
+#     return bce(targets, predictions).numpy()'
 
 # opt = tf.keras.optimizers.Adam(learning_rate=0.01)
 # # Train the model
