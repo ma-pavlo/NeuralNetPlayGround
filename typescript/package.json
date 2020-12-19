@@ -1,0 +1,8 @@
+{
+  "name": "neural-net-playground",
+  "dependencies": {
+    "@tensorflow/tfjs": "~2.7.0",
+    "@types/ramda": "~0.27.32",
+    "ramda": "~0.27.1"
+  }
+}
